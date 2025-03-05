@@ -29,6 +29,9 @@ gem 'activeadmin'
 gem 'activeadmin_addons'
 gem 'devise'
 
+gem 'alba'
+gem 'kaminari'
+
 group :development, :test do
   gem 'bundler-audit'
   gem 'capybara'
