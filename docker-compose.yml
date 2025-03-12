@@ -33,5 +33,18 @@ services:
       POSTGRES_HOST: 'db'
       POSTGRES_USER: 'postgres'
       POSTGRES_PASSWORD: 'postgres'
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongodb:/data/db
+    healthcheck:
+        test: ["CMD","mongosh", "--eval", "db.adminCommand('ping')"]
+        interval: 5s
+        timeout: 5s
+        retries: 3
+        start_period: 5s
 volumes:
   db:

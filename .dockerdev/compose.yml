@@ -1,0 +1,102 @@
+x-app:
+  &app
+  build:
+    context: .
+    args:
+      RUBY_VERSION: '3.3.0'
+      PG_MAJOR: '17'
+  image: library/dev:1.0.0
+  environment:
+    &env
+    RAILS_ENV: ${RAILS_ENV:-development}
+  env_file:
+    - ./.env
+  tmpfs:
+    - /tmp
+    - /app/tmp/pids
+
+x-backend:
+  &backend
+  <<: *app
+  stdin_open: true
+  tty: true
+  volumes:
+    - ..:/rails:cached
+    - bundle:/usr/local/bundle
+    - rails_cache:/rails/tmp/cache
+    - history:/usr/local/hist
+    - ./.psqlrc:/root/.psqlrc:ro
+    - ./.bashrc:/root/.bashrc:ro
+    - "$DOCKER_COMPOSE_ARCHIVE_FOLDER:/rails/db/data"
+  environment:
+    &backend_environment
+    <<: *env
+    DATABASE_URL: postgres://postgres:postgres@postgres:5432
+    MALLOC_ARENA_MAX: 2
+    WEB_CONCURRENCY: ${WEB_CONCURRENCY:-1}
+    BOOTSNAP_CACHE_DIR: /usr/local/bundle/_bootsnap
+    XDG_DATA_HOME: /rails/tmp/cache
+    HISTFILE: /usr/local/hist/.bash_history
+    PSQL_HISTFILE: /usr/local/hist/.psql_history
+    IRB_HISTFILE: /usr/local/hist/.irb_history
+    EDITOR: vi
+    RAILS_LOG_TO_STDOUT: 'yes'
+    PAGER: 'more'
+  depends_on:
+    postgres:
+      condition: service_healthy
+    mongodb:
+      condition: service_healthy
+
+
+services:
+  runner:
+    <<: *backend
+    command: /bin/bash
+
+  rails:
+    <<: *backend
+    command: bundle exec rails
+
+  web:
+    <<: *backend
+    command: >
+      sh -c "rm -f tmp/pids/server.pid &&
+             bundle exec rails s -p 3000 -b '0.0.0.0'"
+    ports:
+      - '3000:3000'
+
+  postgres:
+    image: postgres:17
+    volumes:
+      - .psqlrc:/root/.psqlrc:ro
+      - postgres:/var/lib/postgresql/data
+      - history:/usr/local/hist
+    environment:
+      PSQL_HISTFILE: /usr/local/hist/.psql_history
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: pg_isready -U postgres -h 127.0.0.1
+      interval: 5s
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongodb:/data/db
+    healthcheck:
+        test: ["CMD","mongosh", "--eval", "db.adminCommand('ping')"]
+        interval: 5s
+        timeout: 5s
+        retries: 3
+        start_period: 5s
+
+volumes:
+  bundle:
+  history:
+  rails_cache:
+  postgres:
+  mongodb:

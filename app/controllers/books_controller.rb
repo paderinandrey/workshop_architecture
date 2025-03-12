@@ -2,7 +2,7 @@
 
 class BooksController < ApplicationController
   def index
-    books = Book.page(page).per(Settings.app.items_per_page)
+    books = Mongo::Book.page(page).per(Settings.app.items_per_page)
     render json: BookSerializer.new(books).serialize
   end
 

@@ -5,6 +5,9 @@ gem 'puma', '>= 6.5.0'
 
 # Базы данных
 gem 'pg'
+gem 'mongoid', '~> 9.0'
+gem 'bson_ext'
+gem 'kaminari-mongoid'
 
 # Многопоточное выполнение
 gem 'parallel'
