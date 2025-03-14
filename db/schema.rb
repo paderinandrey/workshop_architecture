@@ -10,8 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2024_09_01_140126) do
+ActiveRecord::Schema[8.0].define(version: 2025_03_14_012254) do
   # These are extensions that must be enabled in order to support this database
+  enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
 
@@ -122,6 +123,24 @@ ActiveRecord::Schema[8.0].define(version: 2024_09_01_140126) do
     t.index ["slug"], name: "index_languages_on_slug", unique: true
   end
 
+  create_table "likes", force: :cascade do |t|
+    t.bigint "reader_id", null: false
+    t.uuid "book_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["book_id"], name: "index_likes_on_book_id"
+    t.index ["reader_id", "book_id"], name: "index_likes_on_reader_id_and_book_id", unique: true
+    t.index ["reader_id"], name: "index_likes_on_reader_id"
+  end
+
+  create_table "readers", force: :cascade do |t|
+    t.string "name", null: false
+    t.citext "email", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_readers_on_email", unique: true
+  end
+
   add_foreign_key "books", "folders"
   add_foreign_key "books", "languages"
   add_foreign_key "books_authors", "authors"
@@ -131,4 +150,6 @@ ActiveRecord::Schema[8.0].define(version: 2024_09_01_140126) do
   add_foreign_key "books_keywords", "books"
   add_foreign_key "books_keywords", "keywords"
   add_foreign_key "genres", "genre_groups"
+  add_foreign_key "likes", "books"
+  add_foreign_key "likes", "readers"
 end
