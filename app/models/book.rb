@@ -13,6 +13,9 @@ class Book < ApplicationRecord
   has_many :keywords, through: :books_keywords
   accepts_nested_attributes_for :keywords
 
+  has_many :likes, dependent: :destroy
+  has_many :liked_by_readers, through: :likes, source: :reader
+
   belongs_to :folder # , counter_cache: :books_count
   belongs_to :language # , counter_cache: :books_count
 

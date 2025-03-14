@@ -9,6 +9,9 @@ gem 'mongoid', '~> 9.0'
 gem 'bson_ext'
 gem 'kaminari-mongoid'
 
+# Queue broker
+gem 'karafka', '~> 2.0'
+
 # Многопоточное выполнение
 gem 'parallel'
 gem 'activerecord-import'
